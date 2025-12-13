@@ -1,4 +1,20 @@
+console.log("=== DEBUG: Checking environment ===");
+console.log(
+  "MONGO_URI from process.env:",
+  process.env.MONGO_URI ? "SET" : "NOT SET"
+);
+console.log("All environment variables:", Object.keys(process.env));
+console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
+console.log(
+  "MONGO_URI value:",
+  process.env.MONGO_URI ? "***SET***" : "NOT SET"
+);
+
 require("dotenv").config();
+console.log(
+  "MONGO_URI after dotenv:",
+  process.env.MONGO_URI ? "SET" : "NOT SET"
+);
 
 const express = require("express");
 const cors = require("cors");
