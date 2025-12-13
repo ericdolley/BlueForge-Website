@@ -6,7 +6,7 @@
     "node": ">=18"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node server/index.js",
     "build": "npm install"
   },
   "dependencies": {
