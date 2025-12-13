@@ -1,0 +1,25 @@
+{
+  "name": "startup-website",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "nodemon --watch server --exec \"node server/index.js\"",
+    "dev:client": "npm --prefix client run dev",
+    "start": "node server/index.js",
+    "zip": "node scripts/zip-pack.js"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "concurrently": "^8.2.0",
+    "cores": "^0.8.5",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "mongoose": "^9.0.1",
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
