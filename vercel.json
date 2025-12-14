@@ -1,5 +1,4 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "client/dist",
-  "src": "client/package.json"
+  "outputDirectory": "client/dist"
 }
