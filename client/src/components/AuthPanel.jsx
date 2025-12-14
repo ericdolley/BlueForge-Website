@@ -1,56 +1,35 @@
 import React, { useState } from "react";
 import API from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
+import { useSignupForm } from "../hooks/useSignupForm"; // ADD THIS IMPORT
 
 const AuthPanel = () => {
   const { login } = useAuth();
   const [mode, setMode] = useState("login");
-  const [loading, setLoading] = useState(false);
-  const [feedback, setFeedback] = useState("");
+
+  // REPLACE signupForm state with hook:
+  const {
+    formData, // Use this instead of signupForm
+    loading,
+    feedback,
+    passwordError,
+    handlePasswordChange,
+    handleFieldChange,
+    resetForm,
+    setLoading,
+    setFeedback,
+  } = useSignupForm();
+
+  // Keep loginForm separate (different structure)
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-  const [signupForm, setSignupForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-  });
-  const [passwordError, setPasswordError] = useState("");
-
-  const validatePassword = (password) => {
-    // Check if password is at least 15 characters
-    if (password.length >= 15) {
-      return { isValid: true, message: "" };
-    }
-
-    // Check if password is at least 8 characters with a number and lowercase letter
-    if (password.length >= 8) {
-      const hasNumber = /\d/.test(password);
-      const hasLowercase = /[a-z]/.test(password);
-
-      if (hasNumber && hasLowercase) {
-        return { isValid: true, message: "" };
-      } else {
-        return {
-          isValid: false,
-          message:
-            "Password must contain at least one number and one lowercase letter",
-        };
-      }
-    }
-
-    return {
-      isValid: false,
-      message:
-        "Password must be at least 15 characters OR at least 8 characters with a number and lowercase letter",
-    };
-  };
 
   const handleLogin = async (event) => {
     event.preventDefault();
     setLoading(true);
     setFeedback("");
     try {
-      const response = await API.post("/auth/login", loginForm);
+      // ✅ FIXED LINE
+      const response = await API.post("/api/auth/login", loginForm);
       login(response.data.token, response.data.user);
       setFeedback("Logged in! Redirecting to your profile...");
     } catch (error) {
@@ -63,8 +42,10 @@ const AuthPanel = () => {
   const handleSignup = async (event) => {
     event.preventDefault();
 
-    // Validate password before submission
-    const passwordValidation = validatePassword(signupForm.password);
+    // Use hook's validation
+    const passwordValidation = useSignupForm().validatePassword(
+      formData.password
+    );
     if (!passwordValidation.isValid) {
       setFeedback(passwordValidation.message);
       return;
@@ -73,11 +54,12 @@ const AuthPanel = () => {
     setLoading(true);
     setFeedback("");
     try {
-      await API.post("/auth/signup", signupForm);
+      // ✅ FIXED LINE - use formData not signupForm
+      await API.post("/api/auth/signup", formData);
       setFeedback(
         "Signup created. Check your inbox for the verification link."
       );
-      setSignupForm({ firstName: "", lastName: "", email: "", password: "" });
+      resetForm();
     } catch (error) {
       setFeedback(error.response?.data?.message || "Sign-up failed");
     } finally {
@@ -86,7 +68,7 @@ const AuthPanel = () => {
   };
 
   const handleOAuth = async (provider) => {
-    if (!signupForm.email) {
+    if (!formData.email) {
       setFeedback("Please provide email to continue with OAuth");
       return;
     }
@@ -94,9 +76,9 @@ const AuthPanel = () => {
     setFeedback("");
     try {
       const response = await API.post(`/auth/oauth/${provider}`, {
-        email: signupForm.email,
-        firstName: signupForm.firstName,
-        lastName: signupForm.lastName,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
       });
       login(response.data.token, response.data.user);
       setFeedback(`${provider} login succeeded!`);
@@ -146,11 +128,9 @@ const AuthPanel = () => {
             className={`w-full rounded-2xl border ${
               passwordError ? "border-rose-500" : "border-slate-700"
             } bg-slate-950 px-4 py-3 text-sm text-white focus:border-primary-400 focus:outline-none`}
-            value={signupForm.password}
+            value={formData.password}
             onChange={(event) => {
-              setSignupForm({ ...signupForm, password: event.target.value });
-              const validation = validatePassword(event.target.value);
-              setPasswordError(validation.isValid ? "" : validation.message);
+              handleFieldChange("password", event.target.value);
             }}
           />
           {passwordError && (
@@ -172,18 +152,18 @@ const AuthPanel = () => {
               required
               placeholder="First Name"
               className="rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-primary-400 focus:outline-none"
-              value={signupForm.firstName}
+              value={formData.firstName}
               onChange={(event) =>
-                setSignupForm({ ...signupForm, firstName: event.target.value })
+                handleFieldChange("firstName", event.target.value)
               }
             />
             <input
               type="text"
               placeholder="Last Name"
               className="rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-primary-400 focus:outline-none"
-              value={signupForm.lastName}
+              value={formData.lastName}
               onChange={(event) =>
-                setSignupForm({ ...signupForm, lastName: event.target.value })
+                handleFieldChange("lastName", event.target.value)
               }
             />
           </div>
@@ -192,19 +172,17 @@ const AuthPanel = () => {
             required
             placeholder="Email"
             className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-primary-400 focus:outline-none"
-            value={signupForm.email}
-            onChange={(event) =>
-              setSignupForm({ ...signupForm, email: event.target.value })
-            }
+            value={formData.email}
+            onChange={(event) => handleFieldChange("email", event.target.value)}
           />
           <input
             type="password"
             required
             placeholder="Password"
             className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm text-white focus:border-primary-400 focus:outline-none"
-            value={signupForm.password}
+            value={formData.password}
             onChange={(event) =>
-              setSignupForm({ ...signupForm, password: event.target.value })
+              handleFieldChange("password", event.target.value)
             }
           />
           <button
