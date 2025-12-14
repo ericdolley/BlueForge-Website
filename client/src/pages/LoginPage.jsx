@@ -171,8 +171,8 @@ const LoginPage = () => {
           <div className="absolute inset-0">
             {/* Photo */}
             <img
-              src="../../public/F@liuyan98112.jpg"
-              alt="Developer workspace"
+              src="/F@liuyan98112.jpg"
+              alt="CEO"
               className="w-full h-full object-cover"
             />
 
